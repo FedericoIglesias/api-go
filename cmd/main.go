@@ -3,6 +3,7 @@ package main
 import (
 	"api-go/internal/user"
 	"api-go/pkg/bootstrap"
+	"api-go/pkg/handler"
 	"context"
 	"fmt"
 	"log"
@@ -17,8 +18,9 @@ func main() {
 	service:= user.NewService(bootstrap.NewLogger(),repo)
 	
 	ctx := context.Background()
+	handler.NewUserHTTPServer(ctx, server, user.MakeEndpoits(ctx, service))
 
-	server.HandleFunc("/users", user.MakeEndpoits(ctx, service))
+	
 	fmt.Println("Server up in port: 8080")
 	log.Fatal((http.ListenAndServe(":8080", server)))
 }
