@@ -4,7 +4,6 @@ import (
 	"api-go/internal/domain"
 	"context"
 	"log"
-	"os/user"
 )
 
 type (
