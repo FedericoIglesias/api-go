@@ -48,7 +48,7 @@ func decodeGetAllUser(ctx context.Context, r *http.Request) (interface{}, error)
 func decodeCreateUser(ctx context.Context, r *http.Request) (interface{}, error) {
 	var req user.CreateReq
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, fmt.Errorf("Invalid request format: '%v'", err.Error())
+		return nil, fmt.Errorf("invalid request format: '%v'", err.Error())
 	}
 	return req, nil
 }
