@@ -10,6 +10,7 @@ type (
 	Service interface {
 		Create(ctx context.Context, firstName, lastName, email string) (*domain.User, error)
 		GetAll(ctx context.Context) ([]domain.User, error)
+		GetUser(ctx context.Context, id uint64) (*domain.User, error)
 	}
 
 	service struct {
@@ -30,7 +31,6 @@ func (s *service) Create(ctx context.Context, firstName string, lastName string,
 		return nil, err
 	}
 
-	s.log.Println("service created")
 	return user, nil
 }
 
@@ -41,7 +41,6 @@ func (s *service) GetAll(ctx context.Context) ([]domain.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	s.log.Println("service get all")
 	return users, nil
 }
 
@@ -50,4 +49,8 @@ func NewService(l *log.Logger, repo Repository) Service {
 		log:  l,
 		repo: repo,
 	}
+}
+
+func (s service) GetUser(ctx context.Context, id uint64) (*domain.User, error) {
+	return s.repo.GetUser(ctx, id)
 }

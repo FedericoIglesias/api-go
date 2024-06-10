@@ -6,41 +6,83 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"strconv"
 )
 
 func NewUserHTTPServer(ctx context.Context, router *http.ServeMux, endpoint user.Endpoints) {
-	router.HandleFunc("/users", UserServer(ctx, endpoint))
+	router.HandleFunc("/users/", UserServer(ctx, endpoint))
 }
 
 func UserServer(ctx context.Context, enpoints user.Endpoints) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
+		url := r.URL.Path
+		log.Println(r.Method, ": ", url)
+
+		path, pathSize := transport.Clean(url)
+
+		params := make(map[string]string)
+
+		if pathSize == 4 && path[2] != "" {
+			params["userID"] = path[2]
+		}
+
+		ctx = context.WithValue(ctx, "params", params)
+
 		tran := transport.New(w, r, ctx)
+
+		var end user.Controller
+		var deco func(ctx context.Context, r *http.Request) (interface{}, error)
 
 		switch r.Method {
 		case http.MethodGet:
-			tran.Server(
-				transport.Endpoint(enpoints.GetAll),
-				decodeGetAllUser,
-				encodeResponse,
-				encodeError,
-			)
-			return 
+			switch pathSize {
+			case 3:
+				end = enpoints.GetAll
+				deco = decodeGetAllUser
+			case 4:
+				end = enpoints.GetUser
+				deco = decodeGetUser
+			}
 		case http.MethodPost:
+			switch pathSize {
+			case 3:
+				end = enpoints.Create
+				deco = decodeCreateUser
+			}
+		}
+		if end != nil && deco != nil {
 			tran.Server(
-				transport.Endpoint(enpoints.Create),
-				decodeCreateUser,
+				transport.Endpoint(end),
+				deco,
 				encodeResponse,
 				encodeError,
 			)
-			return
-		default:
+		} else {
 			InvalidMethod(w)
 		}
 	}
 }
 
+func decodeGetUser(ctx context.Context, r *http.Request) (interface{}, error) {
+	params := ctx.Value("params").(map[string]string)
+
+	id, err := strconv.ParseUint(params["userID"],10,61)
+	
+	if err!= nil{
+		return nil, err
+	}
+	
+	fmt.Println(params)
+	fmt.Println(params["userID"])
+
+
+	return user.GetReq{
+		ID:id,
+	}, nil
+}
 func decodeGetAllUser(ctx context.Context, r *http.Request) (interface{}, error) {
 	return nil, nil
 }
