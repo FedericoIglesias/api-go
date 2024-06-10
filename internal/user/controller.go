@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"errors"
 )
 
 type User struct {
@@ -63,13 +62,13 @@ func makeCreateEndpoints(s Service) Controller {
 		req := request.(CreateReq)
 
 		if req.FirstName == "" {
-			return nil, errors.New("fist name is required")
+			return nil, ErrFirstNameRequired
 		}
 		if req.LastName == "" {
-			return nil, errors.New("lastname is required")
+			return nil, ErrLasNameRequired
 		}
 		if req.Email == "" {
-			return nil, errors.New("email is required")
+			return nil, ErrEmailRequired
 		}
 		user, err := s.Create(ctx, req.FirstName, req.LastName, req.Email)
 		if err != nil {
@@ -89,6 +88,18 @@ func makeGetUserEndpoints(s Service) Controller {
 func makeUpdateUserEndpoint(s Service) Controller {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(UpdateReq)
+
+		if req.FirstName != nil && *req.FirstName == "" {
+			return nil, ErrFirstNameRequired
+		}
+
+		if req.LastName != nil && *req.LastName == "" {
+			return nil, ErrLasNameRequired
+		}
+
+		if req.Email != nil && *req.Email == "" {
+			return nil, ErrEmailRequired
+		}
 
 		err := s.UpdateUser(ctx, req.ID, req.FirstName, req.LastName, req.Email)
 
