@@ -16,9 +16,10 @@ type (
 	Controller func(ctx context.Context, request interface{}) (interface{}, error)
 
 	Endpoints struct {
-		Create Controller
-		GetAll Controller
+		Create     Controller
+		GetAll     Controller
 		GetUser    Controller
+		UpdateUser Controller
 	}
 
 	GetReq struct {
@@ -29,13 +30,20 @@ type (
 		LastName  string `json:"lastName"`
 		Email     string `json:"email"`
 	}
+	UpdateReq struct {
+		ID        uint64
+		FirstName *string `json:"firstName"`
+		LastName  *string `json:"lastName"`
+		Email     *string `json:"email"`
+	}
 )
 
 func MakeEndpoits(ctx context.Context, s Service) Endpoints {
 	return Endpoints{
-		Create: makeCreateEndpoints(s),
-		GetAll: makeGetAllEndpoints(s),
+		Create:     makeCreateEndpoints(s),
+		GetAll:     makeGetAllEndpoints(s),
 		GetUser:    makeGetUserEndpoints(s),
+		UpdateUser: makeUpdateUserEndpoint(s),
 	}
 }
 
@@ -76,4 +84,18 @@ func makeGetUserEndpoints(s Service) Controller {
 		req := request.(GetReq)
 		return s.GetUser(ctx, req.ID)
 	}
+}
+
+func makeUpdateUserEndpoint(s Service) Controller {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(UpdateReq)
+
+		err := s.UpdateUser(ctx, req.ID, req.FirstName, req.LastName, req.Email)
+
+		if err != nil {
+			return nil, err
+		}
+		return nil, nil
+	}
+
 }

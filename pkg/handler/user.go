@@ -15,7 +15,7 @@ func NewUserHTTPServer(ctx context.Context, router *http.ServeMux, endpoint user
 	router.HandleFunc("/users/", UserServer(ctx, endpoint))
 }
 
-func UserServer(ctx context.Context, enpoints user.Endpoints) func(w http.ResponseWriter, r *http.Request) {
+func UserServer(ctx context.Context, endpoints user.Endpoints) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		url := r.URL.Path
@@ -40,17 +40,23 @@ func UserServer(ctx context.Context, enpoints user.Endpoints) func(w http.Respon
 		case http.MethodGet:
 			switch pathSize {
 			case 3:
-				end = enpoints.GetAll
+				end = endpoints.GetAll
 				deco = decodeGetAllUser
 			case 4:
-				end = enpoints.GetUser
+				end = endpoints.GetUser
 				deco = decodeGetUser
 			}
 		case http.MethodPost:
 			switch pathSize {
 			case 3:
-				end = enpoints.Create
+				end = endpoints.Create
 				deco = decodeCreateUser
+			}
+		case http.MethodPatch:
+			switch pathSize{
+			case 4:
+				end = endpoints.UpdateUser
+				deco = decoUpdateUser
 			}
 		}
 		if end != nil && deco != nil {
@@ -69,18 +75,17 @@ func UserServer(ctx context.Context, enpoints user.Endpoints) func(w http.Respon
 func decodeGetUser(ctx context.Context, r *http.Request) (interface{}, error) {
 	params := ctx.Value("params").(map[string]string)
 
-	id, err := strconv.ParseUint(params["userID"],10,61)
-	
-	if err!= nil{
+	id, err := strconv.ParseUint(params["userID"], 10, 61)
+
+	if err != nil {
 		return nil, err
 	}
-	
+
 	fmt.Println(params)
 	fmt.Println(params["userID"])
 
-
 	return user.GetReq{
-		ID:id,
+		ID: id,
 	}, nil
 }
 func decodeGetAllUser(ctx context.Context, r *http.Request) (interface{}, error) {
@@ -92,6 +97,25 @@ func decodeCreateUser(ctx context.Context, r *http.Request) (interface{}, error)
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return nil, fmt.Errorf("invalid request format: '%v'", err.Error())
 	}
+	return req, nil
+}
+
+func decoUpdateUser(ctx context.Context, r *http.Request) (interface{}, error) {
+	var req user.UpdateReq
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return nil, fmt.Errorf("invalid request format: '%v'", err.Error())
+	}
+
+	params := ctx.Value("params").(map[string]string)
+
+	id, err := strconv.ParseUint(params["userID"], 10, 61)
+
+	if err != nil {
+		return nil, err
+	}
+
+	req.ID = id
+
 	return req, nil
 }
 

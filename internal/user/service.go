@@ -11,6 +11,7 @@ type (
 		Create(ctx context.Context, firstName, lastName, email string) (*domain.User, error)
 		GetAll(ctx context.Context) ([]domain.User, error)
 		GetUser(ctx context.Context, id uint64) (*domain.User, error)
+		UpdateUser(ctx context.Context, id uint64, firstName, lastName, email *string) error
 	}
 
 	service struct {
@@ -53,4 +54,12 @@ func NewService(l *log.Logger, repo Repository) Service {
 
 func (s service) GetUser(ctx context.Context, id uint64) (*domain.User, error) {
 	return s.repo.GetUser(ctx, id)
+}
+
+func (s service) UpdateUser(ctx context.Context, id uint64, firstName, lastName, email *string) error {
+	err := s.repo.UpdateUser(ctx, id, firstName, lastName, email)
+	if err != nil {
+		return err
+	}
+	return nil
 }
