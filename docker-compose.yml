@@ -1,0 +1,15 @@
+version: "3.5"
+services:
+  api-go:
+    platform: linux/amd64
+    container_name: api-go
+    build:
+      context: ./.dockers/mysql
+      dockerfile: Dockerfile
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: api_go
+    ports:
+      - "3336:3306"
+    volumes:
+      - ./.dockers/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql

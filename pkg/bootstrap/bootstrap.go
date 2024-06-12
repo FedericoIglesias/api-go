@@ -1,38 +1,32 @@
 package bootstrap
 
 import (
-	"api-go/internal/domain"
-	"api-go/internal/user"
+	"database/sql"
 	"log"
 	"os"
+
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/joho/godotenv"
 )
+
 
 func NewLogger() *log.Logger {
 	return log.New(os.Stdout, "", log.LstdFlags|log.Lshortfile)
-}
-
-func NewDB() user.DB {
-	return user.DB{
-		Users: []domain.User{
-			{
-				ID:        1,
-				FirstName: "Pepe",
-				LastName:  "Coco",
-				Email:     "@algo",
-			},
-			{
-				ID:        2,
-				FirstName: "Cacho",
-				LastName:  "Goxila",
-				Email:     "@otraCosa",
-			},
-			{
-				ID:        3,
-				FirstName: "Armando",
-				LastName:  "Banquito",
-				Email:     "@otroGato",
-			},
-		},
-		MaxUserID: 3,
 	}
+	
+	func NewDB() (*sql.DB, error) {
+		
+		_ = godotenv.Load()
+
+	dbURL := os.ExpandEnv("$DATABASE_USER:$DATABASE_PASSWORD@tcp($DATABASE_HOST:$DATABASE_PORT)/$DATABASE_NAME")
+	
+	log.Println(dbURL)
+// "root:root@tcp(127.0.0.1:3336)/api_go"
+	db, err:= sql.Open("mysql",dbURL)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
 }
