@@ -15,6 +15,6 @@ type ErrNotFound struct{
 }
 
 func (e ErrNotFound)Error()string{
-	fmt.Sprintf("user id: '%d' doesn't exist", e.ID)
+	fmt.Printf("user id: '%d' doesn't exist", e.ID)
 	return "nil"
 }
